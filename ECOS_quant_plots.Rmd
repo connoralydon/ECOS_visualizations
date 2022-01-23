@@ -1,0 +1,133 @@
+---
+title: "ECOS Qualitative Plots"
+output:
+  html_document:
+    df_print: paged
+    code_download: true
+---
+
+load libraries 
+```{r, echo=TRUE, message=FALSE} 
+library(tidyverse)
+library(here)
+library(magrittr)
+library(forcats)
+```
+
+loading data sets
+```{r echo=FALSE, message=FALSE, warning=FALSE,results='hide'}
+cup_quant_df <- read_csv(here("data/cup_quant.csv"))
+plate_quant_df <- read_csv(here("data/plate_quant.csv"))
+```
+
+imputing some data beforehand
+```{r}
+impute_values <- function(df){
+  df$trial_key = NA # initialize column, can't index non-existent column
+  df$trial_key[1:3] <- "Dawn Scotchbrite"
+  df$trial_key[4:6] <- "Ramie Ecos"
+  df$trial_key[7:9] <- "Ramie Block"
+  
+  df$real_before_dry_weight <- df$before_dry_weight - df$empty_weight
+  
+  df$dry_sauce_weight_remaining_prop_i <- df$dry_sauce_weight_remaining / 
+                                               df$real_before_dry_weight
+  
+  return(df)
+}
+
+cup_quant_df %<>% impute_values
+plate_quant_df %<>% impute_values
+
+ 
+# plate_quant_df$real_before_dry_weight <- plate_quant_df$before_dry_weight - plate_quant_df$empty_weight 
+#   # imputing raw dry sauce weight
+# 
+# cup_quant_df$dry_sauce_weight_remaining_prop_i <- cup_quant_df$dry_sauce_weight_remaining / 
+#                                                             cup_quant_df$real_before_dry_weight
+# plate_quant_df$dry_sauce_weight_remaining_prop_i <- plate_quant_df$dry_sauce_weight_remaining / 
+#                                                             plate_quant_df$real_before_dry_weight
+```
+
+---
+
+separating and averaging by each trial
+*function*
+```{r}
+compute_proportion_remaining <- function(df){
+  
+  dawn_scotchbrite <- df[df$group == "dawn_scotchbrite",]
+  dawn_scotchbrite %<>% select(-item_num, -group) # to leave only quantitative variables left
+  
+  ramie_ecos <- df[df$group == "ramie_ecos",]
+  ramie_ecos %<>% select(-item_num, -group)
+  
+  ramie_block <- df[df$group == "ramie_block",]
+  ramie_block %<>% select(-item_num, -group)
+  
+  ##############################################################################################
+  
+  # computing column means for each trial type
+  dawn_scotchbrite_means <- dawn_scotchbrite %>% colMeans()
+  ramie_ecos_means <- ramie_ecos %>% colMeans()
+  ramie_block_means <- ramie_block %>% colMeans()
+  df_means <- rbind(dawn_scotchbrite_means, ramie_ecos_means, ramie_block_means) %>% as.data.frame()
+  
+  # naming each row
+  df_means$trial_key[1] = "Dawn Scotchbrite"
+  df_means$trial_key[2] = "Ramie Ecos"
+  df_means$trial_key[3] = "Ramie Block"
+  df_means %<>% select(trial_key, everything()) # reorder columns
+  
+  # finding proportions
+  df_means$dry_sauce_weight_remaining_prop <- df_means$dry_sauce_weight_remaining / 
+                                                            df_means$real_before_dry_weight
+  # sub-selecting
+  df_final_selected <- df_means %>% select(trial_key,
+                                             dry_sauce_weight_remaining_prop)
+  
+  return(df_final_selected)
+}
+```
+
+computing values
+```{r}
+plate_proportion_removed <- plate_quant_df %>% select(-trial_key) %>% compute_proportion_remaining()
+plate_all <- plate_quant_df %>% left_join(plate_proportion_removed, by = "trial_key")
+
+
+cup_proportion_removed <- cup_quant_df %>% select(-trial_key) %>% compute_proportion_remaining()
+cup_all <- cup_quant_df %>% left_join(cup_proportion_removed, by = "trial_key")
+```
+
+---
+
+plotting data
+*not going to do plate and cup together because the proportions are much different*
+```{r}
+ggplot(data = plate_all, aes(x = trial_key, y = dry_sauce_weight_remaining_prop, fill = trial_key)) +
+  geom_bar(stat = "identity", position = "dodge", alpha = 0.4) +
+  scale_fill_manual(values = c("#b5179e","#4895ef","#3a0ca3")) +
+  geom_point(aes(y = dry_sauce_weight_remaining_prop_i), show.legend = FALSE) +
+  theme_minimal() +
+  theme(panel.grid.major.x = element_blank(),
+        legend.position="none"
+        ) +
+  xlab("Trial") +
+  ylab("Proportion of Dry Sauce Remaining") +
+  labs(fill = "Trial",
+       title = "Relative Weight Remaining for Plates")
+
+ggplot(data = cup_all, aes(x = trial_key, y = dry_sauce_weight_remaining_prop, fill = trial_key)) +
+  geom_bar(stat = "identity", position = "dodge", alpha = 0.4) +
+  scale_fill_manual(values = c("#b5179e","#4895ef","#3a0ca3")) +
+  geom_point(aes(y = dry_sauce_weight_remaining_prop_i), show.legend = FALSE) +
+  theme_minimal() +
+  theme(panel.grid.major.x = element_blank(),
+        legend.position="none"
+        ) +
+  xlab("Trial") +
+  ylab("Proportion of Dry Sauce Remaining") +
+  labs(fill = "Trial",
+       title = "Relative Weight Remaining for Cups")
+```

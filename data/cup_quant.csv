@@ -1,0 +1,10 @@
+group,item_num,empty_weight,before_wet_weight,before_dry_weight,after_dry_weight,wet_sauce_weight_original,wet_sauce_weight_removed,dry_sauce_weight_remaining,dry_sauce_weight_removed,water_moisture_percent
+dawn_scotchbrite,1,321.16,340.96,331.31,321.35,19.8,9.65,0.19,9.96,0.4873737374
+dawn_scotchbrite,2,313.12,333.07,323.53,313.23,19.95,9.54,0.11,10.3,0.4781954887
+dawn_scotchbrite,3,338.35,358.75,347.02,338.42,20.4,11.73,0.07,8.6,0.575
+ramie_ecos,1,321.16,341.12,332.97,321.31,19.96,8.15,0.15,11.66,0.4083166333
+ramie_ecos,2,313.12,333.62,323.59,313.68,20.5,10.03,0.56,9.91,0.4892682927
+ramie_ecos,3,338.35,358.26,351.99,338.62,19.91,6.27,0.27,13.37,0.3149171271
+ramie_block,1,321.16,341.43,333.17,321.43,20.27,8.26,0.27,11.74,0.4074987667
+ramie_block,2,313.12,333.31,327.6,313.24,20.19,5.71,0.12,14.36,0.2828132739
+ramie_block,3,338.35,358.42,348.94,338.54,20.07,9.48,0.19,10.4,0.4723467862

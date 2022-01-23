@@ -1,0 +1,149 @@
+---
+title: "ECOS Quantitative Plots"
+output:
+  html_document:
+    df_print: paged
+    code_download: true
+---
+
+load libraries 
+```{r, echo=TRUE, message=FALSE} 
+library(tidyverse)
+library(here)
+library(magrittr)
+library(forcats)
+```
+
+---
+
+loading data set
+```{r echo=T, message=FALSE, warning=FALSE,results='hide'}
+qual_response_df <- read_csv(here("data/qual_responses.csv"))
+qual_response_df %<>% drop_na() # dropping incompleted survey answers
+
+# this takes out the time-stamp, each line is a reply
+qual_response_df %<>% select(-Timestamp)
+```
+
+---
+
+classify sponges and soaps
+```{r}
+# make the responses longer
+#   it is easier to plot
+dfgraph <- pivot_longer(qual_response_df, everything())
+
+# because there are a discrete amount of 'scores'
+dfgraph$value %<>% as.factor
+
+#remove incomplete answers
+dfgraph %<>% drop_na()
+
+dfgraph$sponge = NA
+dfgraph$soap = NA
+
+# writing into sponge for each type
+dfgraph$sponge[grepl("Scotchbrite", dfgraph$name, fixed = T)] <- "Scotchbrite \nGeneric Sponge"
+dfgraph$sponge[grepl("Sisal", dfgraph$name, fixed = T)] <- "Sisal Fiber Bag"
+dfgraph$sponge[grepl("Drawstring", dfgraph$name, fixed = T)] <- "Ramie Bag with \nCotton Drawstring"
+dfgraph$sponge[grepl("Agave", dfgraph$name, fixed = T)] <- "Agave Fiber Bag"
+dfgraph$sponge[grepl("Hemp", dfgraph$name, fixed = T)] <- "Cotton/Hemp \nBlend Bag"
+
+# writing into soap for each type
+dfgraph$soap[grepl("Liquid", dfgraph$name, fixed = T)] <- "Dawn Liquid"
+dfgraph$soap[grepl("Piw", dfgraph$name, fixed = T)] <- "MiwPiw Solid"
+dfgraph$soap[grepl("Tox", dfgraph$name, fixed = T)] <- "NoToxLife Solid"
+dfgraph$soap[grepl("ECOS", dfgraph$name, fixed = T)] <- "ECOS Sheet"
+```
+
+---
+
+*scale of plots is off because they were made for posters*
+*can change the scale in the code, it is downloadable*
+
+plotting all trials
+```{r}
+# by each trial
+ggplot(dfgraph, aes(x = value, fill = value)) + 
+  ggtitle("Scores by each Trial") +
+  geom_bar() + 
+  facet_wrap(~name, 
+             strip.position = "bottom",
+             nrow = 3) +
+  theme_classic() +
+  theme(axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        text = element_text(size = 30),
+        legend.text = element_text(size=20),
+        legend.title = element_text(size=20),
+        legend.key.height = unit(1, "cm")) +
+  scale_fill_manual(name = "Score",
+                    values = c("#caf0f8","#90e0ef","#00b4d8","#0077b6","#03045e"),
+                    labels = c("5 (Cleanest)", "4","3","2","1 (Dirtiest)")) # blue pallette
+
+# by each trial STACKED
+ggplot(dfgraph, aes(x = name, fill = fct_rev(value))) + 
+  ggtitle("Scores by each Trial") +
+  geom_bar(position = "fill") + 
+  theme_classic() +
+  theme(axis.text.y = element_text(size = 15),
+        axis.ticks.y = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        text = element_text(size = 30),
+        legend.text = element_text(size=20),
+        legend.title = element_text(size=20),
+        legend.key.height = unit(1, "cm")) +
+  coord_flip() + 
+  scale_fill_manual(name = "Score",
+                    values = rev(c("#caf0f8","#90e0ef","#00b4d8","#0077b6","#03045e")),
+                    labels = c("5 (Cleanest)", "4","3","2","1 (Dirtiest)")) # blue pallette
+
+```
+
+---
+
+plotting soaps and sponges
+```{r}
+# by each soap
+ggplot(dfgraph, aes(x = value, fill = value)) + 
+  ggtitle("Scores by each Soap") +
+  geom_bar() + 
+  facet_wrap(~soap, 
+             strip.position = "bottom",
+             nrow = 3) +
+  theme_classic() +
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.title.x = element_blank(),
+        text = element_text(size = 20)) +
+  ylab("Number of votes") +
+  scale_y_continuous(breaks = c(0,50,100)) +
+  scale_fill_manual(name = "Score",
+                    values = c("#D9ED92","#B5E48C","#99D98C","#76C893","#52B69A"),
+                    labels = rev(c("5 (Cleanest)", "4","3","2","1 (Dirtiest)"))) # green
+
+# by each sponge
+ggplot(dfgraph, aes(x = value, fill = value)) + 
+  ggtitle("Scores by each Sponge") +
+  geom_bar() + 
+  facet_wrap(~sponge, 
+             strip.position = "bottom",
+             nrow = 3) +
+  theme_classic() +
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.title.x = element_blank(),
+        text = element_text(size = 20)) +
+  ylab("Number of votes") +
+  scale_y_continuous(breaks = c(0,50,100)) +
+  scale_fill_manual(name = "Score",
+                    values = c("#34A0A4","#168AAD","#1A759F","#1A759F","#184E77"),
+                    labels = rev(c("5 (Cleanest)", "4","3","2","1 (Dirtiest)"))) # dark blue
+```
