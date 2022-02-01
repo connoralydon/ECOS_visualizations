@@ -8,3 +8,8 @@ The goal of the project was to research effectiveness of alternative soaps and a
 The code and analysis here showcases my ggplot2 ability in R to make custom visualizations that are of publishable quality.
 
 Data comes from two sources: from a qualitative questionnaire which asks respondents which plate is cleanest as well as quantitative analysis which used the remaining sauce weight on each plate.
+
+
+The individual plots included are in the qual and quant html files.
+
+![poster](https://raw.githubusercontent.com/connoralydon/ECOS_visualizations/main/Team%20ECOS%20Poster.png)
